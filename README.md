@@ -16,7 +16,7 @@ Aplicación web pequeña para gestionar incidencias en un tablero Kanban, con tr
 ## Instalación
 
 ```bash
-git clone <url-del-repositorio> panel-incidencias
+git clone https://github.com/carlos349/panel-operativo-incidencias.git panel-incidencias
 cd panel-incidencias
 
 composer install
@@ -162,13 +162,16 @@ El selector **Tema** de la cabecera cambia la paleta al instante y recuerda la e
 - Añadir un tema son dos pasos: un bloque `[data-theme='…']` en `themes.css` y una entrada en `config/themes.php`.
 - Los desplegables (`<select>`) siguen el tema también en su panel de opciones: se usa `appearance: base-select` donde el navegador lo admite y, donde no, las opciones heredan los colores del tema.
 
-Decisiones de arquitectura frontend:
+## Decisiones de arquitectura frontend:
 
 - **Composición:** `x-ui.modal` define el contenedor y recibe título, cuerpo y pie por slots; `x-ui.field` envuelve cualquier control con su etiqueta y error.
 - **Componentes polimórficos:** `x-ui.button` (`as="button|a"`), `x-ui.badge` (`as="span|button|a"`) y `x-ui.control` (`as="input|select|textarea"`) cambian de etiqueta HTML conservando estilo y API.
 - **Desacoplamiento:** las vistas no reciben modelos Eloquent. `App\ViewModels\IncidentCard` y `App\ViewModels\TimelineEntry` entregan datos ya traducidos a presentación (etiquetas, «tonos» semánticos, textos de SLA). Los colores se resuelven solo dentro de los componentes Blade.
 - **Tres componentes Livewire** comunicados por eventos: `IncidentBoard` (tablero, filtros y confirmaciones), `CreateIncident` (alta) e `IncidentDetail` (detalle).
 - En el arrastre, el DOM no decide: al soltar, la tarjeta vuelve a su sitio y se pide el cambio al servidor, que valida y repinta.
+
+### ¿Por qué Blade + Livewire en lugar de Inertia + React?
+Para un panel operativo pequeño, **Blade + Livewire** permite construir una interfaz reactiva sin salir de Laravel. Toda la lógica (validación, reglas del flujo de estados, transacciones y cálculo de SLA) vive en un único lugar —el servidor— y la interfaz se limita a reflejarla. Con **Inertia + React**, esa misma lógica obliga a mantener dos capas sincronizadas: controladores y *props* en PHP por un lado, y estado, tipado y componentes en JavaScript por otro.
 
 ## Caso práctico: diagnóstico y saneamiento
 

@@ -20,7 +20,7 @@
 
 ### Primer Prompt (Especificación Base)
 
-> **Inicio Primer Prompt**
+**Inicio Primer Prompt**
 >
 > #### Especificación Técnica: Panel Operativo de Incidencias
 >
@@ -125,6 +125,37 @@
 > - **Desacoplamiento:** No reflejar directamente la estructura cruda del backend/base de datos en la UI.
 >
 > ---
+> 
+> ## 6. Caso Práctico: Simulación y Resolución de Incidencia de Mantenimiento
+> 
+> Deberás simular un escenario real de mantenimiento de datos corruptos/inconsistentes y documentar su solución:
+> 
+> 1. **Generación de Datos Corruptos (Seeders):**
+>    Crea datos de ejemplo que contengan al menos **tres tipos de inconsistencias**:
+>    * Una incidencia en estado `Resuelta` que no tenga su log de resolución correspondiente.
+>    * Una incidencia cuyo estado actual no coincida con el `new_value` de su último log.
+>    * Un log duplicado o cronológicamente/lógicamente incoherente.
+> 
+> 2. **Herramienta de Diagnóstico y Saneamiento:**
+>    * Implementa una herramienta clara para detectarlas mediante SQL o Eloquent (ej. un **comando Artisan** dedicado, una clase de servicio o script documentado).
+>    * Incluye un modo **`--dry-run`** (o equivalente) que muestre qué acciones se tomarían antes de alterar la base de datos.
+>    * Corrige los datos de forma segura (creando logs faltantes, ajustando estados o marcando registros para revisión manual).
+> 
+> ---
+>
+> ## 7. Entregables y Documentación (`README.md`)
+> 
+> * Código fuente completo, migraciones y seeders.
+> * Archivo `.env.example` limpio (sin credenciales reales).
+> * **`README.md` exhaustivo** que permita levantar el proyecto:
+>   * Requisitos del sistema (versiones de PHP, Composer, Node.js y MySQL).
+>   * Pasos de instalación de dependencias.
+>   * Comandos para ejecutar migraciones y cargar los seeders (incluyendo los datos inconsistentes).
+>   * Comando para levantar el servidor de desarrollo.
+>   * Instrucciones/comandos para ejecutar el diagnóstico y reparación de inconsistencias (incluyendo la explicación de las queries utilizadas y la justificación de las decisiones tomadas).
+>   * Notas sobre decisiones técnicas y usuario de prueba (si aplica).
+> 
+> ---
 >
 > ##### 8. Exclusiones (Fuera de Alcance)
 > **No es necesario implementar:**
@@ -136,13 +167,13 @@
 >
 > **Skills invocadas:** `/laravel-best-practices` `/spatie-laravel-php` `/livewire-development` `/tailwind-4-docs` `/mysql` `/database-schema-designer` `/documentation` `/ui-ux-pro-max`
 >
-> **Fin del Primer Prompt**
+**Fin del Primer Prompt**
 
 ---
 
 ### Segundo Prompt (Refinamiento y Ajustes)
 
-> **Inicio Segundo Prompt**
+**Inicio Segundo Prompt**
 >
 > #### Requerimientos Técnicos
 > - Mejora la configuración de temas y colores de la app; esta debe contar con al menos 5 temas, proponme colores para estos temas.
@@ -150,7 +181,7 @@
 > - Fallo en flujo de estado: estas se deben crear solo con estados iniciales **Abierta** (si no tiene responsable) o **Abierta / En Revisión** (si tiene responsable).
 > - Agregar al flujo de estado el estado **Anulado** (cualquier incidencia puede pasar a anulado excepto desde el estado **Resuelto**).
 >
-> **Fin del Segundo Prompt**
+**Fin del Segundo Prompt**
 
 ---
 
