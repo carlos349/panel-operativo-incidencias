@@ -3,11 +3,12 @@
 
 @php
     $variants = [
-        'primary' => 'bg-indigo-600 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline-indigo-600',
-        'secondary' => 'bg-white text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus-visible:outline-indigo-600',
-        'danger' => 'bg-red-600 text-white shadow-sm hover:bg-red-500 focus-visible:outline-red-600',
-        'success' => 'bg-emerald-600 text-white shadow-sm hover:bg-emerald-500 focus-visible:outline-emerald-600',
-        'ghost' => 'text-slate-600 hover:bg-slate-200/70 hover:text-slate-900 focus-visible:outline-indigo-600',
+        'primary' => 'bg-primary text-on-primary shadow-sm hover:bg-primary-hover',
+        'secondary' => 'bg-surface text-ink shadow-sm ring-1 ring-inset ring-line-strong hover:bg-surface-muted',
+        'danger' => 'bg-danger-solid text-on-danger shadow-sm hover:opacity-90',
+        'success' => 'bg-success-solid text-on-success shadow-sm hover:opacity-90',
+        'neutral' => 'bg-neutral-solid text-on-neutral shadow-sm hover:opacity-90',
+        'ghost' => 'text-ink-muted hover:bg-surface-muted hover:text-ink',
     ];
 
     $sizes = [
@@ -21,7 +22,8 @@
     ->merge($as === 'button' ? ['type' => 'button'] : [])
     ->class([
         'inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg font-semibold transition-colors',
-        'focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
+        'disabled:cursor-not-allowed disabled:opacity-50',
         $variants[$variant] ?? $variants['primary'],
         $sizes[$size] ?? $sizes['md'],
     ]) }}>

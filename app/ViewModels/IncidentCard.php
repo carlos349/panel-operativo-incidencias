@@ -40,6 +40,7 @@ final readonly class IncidentCard
         public bool $isOverdue,
         public bool $isBlocked,
         public bool $isResolved,
+        public bool $isCancelled,
         public array $transitions,
     ) {}
 
@@ -47,7 +48,10 @@ final readonly class IncidentCard
     public static function from(Incident $incident, SlaPolicy $sla, Collection $statuses): self
     {
         $status = $incident->status->type();
-        $slaState = $sla->resolutionState($incident->priority, $incident->resolution_due_at, $incident->resolution_date);
+        // Una incidencia anulada queda fuera del SLA: ni cumple ni incumple.
+        $slaState = $status === IncidentStatus::Cancelled
+            ? null
+            : $sla->resolutionState($incident->priority, $incident->resolution_due_at, $incident->resolution_date);
 
         return new self(
             id: $incident->id,
@@ -71,6 +75,7 @@ final readonly class IncidentCard
             isOverdue: $slaState === SlaState::Breached,
             isBlocked: $status === IncidentStatus::Blocked,
             isResolved: $status === IncidentStatus::Resolved,
+            isCancelled: $status === IncidentStatus::Cancelled,
             transitions: $statuses
                 ->filter(fn (Status $candidate) => $status->canTransitionTo($candidate->type()))
                 ->map(fn (Status $candidate) => ['id' => $candidate->id, 'name' => $candidate->name])

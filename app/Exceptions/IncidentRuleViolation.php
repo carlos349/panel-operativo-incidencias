@@ -17,8 +17,15 @@ class IncidentRuleViolation extends DomainException
         return new self("No se permite pasar de «{$from}» a «{$to}».");
     }
 
-    public static function reopenReasonRequired(): self
+    public static function reasonRequired(string $to): self
     {
-        return new self('Para reabrir una incidencia resuelta es obligatorio indicar el motivo.');
+        return new self("Para pasar una incidencia a «{$to}» es obligatorio indicar el motivo.");
+    }
+
+    public static function invalidInitialStatus(string $status, bool $hasAssignee): self
+    {
+        return new self($hasAssignee
+            ? "Una incidencia no puede crearse en estado «{$status}»: solo «Abierta» o «En Revisión»."
+            : "Una incidencia sin responsable solo puede crearse en estado «Abierta», no «{$status}».");
     }
 }

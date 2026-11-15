@@ -1,24 +1,24 @@
 {{--
     Etiqueta de estado. Polimórfica: `as` decide la etiqueta HTML (span, button, a...).
-    `tone` es un valor semántico (neutral|info|success|warning|danger); el color vive solo aquí.
+    `tone` es un valor semántico (neutral|info|success|warning|danger); el color lo pone el tema activo.
 --}}
 @props(['as' => 'span', 'tone' => 'neutral', 'solid' => false, 'pulse' => false])
 
 @php
     $tones = $solid
         ? [
-            'neutral' => 'bg-slate-700 text-white ring-slate-700',
-            'info' => 'bg-sky-600 text-white ring-sky-600',
-            'success' => 'bg-emerald-600 text-white ring-emerald-600',
-            'warning' => 'bg-amber-500 text-slate-900 ring-amber-500',
-            'danger' => 'bg-red-600 text-white ring-red-600',
+            'neutral' => 'bg-neutral-solid text-on-neutral ring-neutral-solid',
+            'info' => 'bg-info-solid text-on-info ring-info-solid',
+            'success' => 'bg-success-solid text-on-success ring-success-solid',
+            'warning' => 'bg-warning-solid text-on-warning ring-warning-solid',
+            'danger' => 'bg-danger-solid text-on-danger ring-danger-solid',
         ]
         : [
-            'neutral' => 'bg-slate-100 text-slate-700 ring-slate-200',
-            'info' => 'bg-sky-50 text-sky-800 ring-sky-200',
-            'success' => 'bg-emerald-50 text-emerald-800 ring-emerald-200',
-            'warning' => 'bg-amber-50 text-amber-900 ring-amber-300',
-            'danger' => 'bg-red-50 text-red-800 ring-red-200',
+            'neutral' => 'bg-neutral-soft text-neutral-ink ring-neutral-line',
+            'info' => 'bg-info-soft text-info-ink ring-info-line',
+            'success' => 'bg-success-soft text-success-ink ring-success-line',
+            'warning' => 'bg-warning-soft text-warning-ink ring-warning-line',
+            'danger' => 'bg-danger-soft text-danger-ink ring-danger-line',
         ];
 @endphp
 

@@ -8,7 +8,7 @@ Aplicación web pequeña para gestionar incidencias en un tablero Kanban, con tr
 
 | Herramienta | Versión | Notas |
 |---|---|---|
-| PHP | 8.3 o superior (desarrollado con 8.4) | Extensiones: `pdo_mysql`, `mbstring`, `openssl`, `curl`, `fileinfo`, `intl`, `zip` |
+| PHP | 8.3 o superior (desarrollado con 8.4) | Extensiones: `pdo_mysql`, `mbstring`, `openssl`, `curl`, `fileinfo`, `intl`, `zip`. Activa **OPcache** (ver [Rendimiento](#rendimiento)) |
 | Composer | 2.x | |
 | Node.js | 20 o superior (desarrollado con 24) | Con npm |
 | MySQL | 8.0 o superior (desarrollado con 8.4) | |
@@ -44,8 +44,8 @@ Ese comando ejecuta tres seeders:
 
 | Seeder | Contenido |
 |---|---|
-| `CatalogSeeder` | Estados (`Abierta`, `En Revisión`, `Bloqueada`, `Resuelta`) y categorías (`Seguridad`, `Redes`, `Accesos`, `Bug Informático`) |
-| `IncidentSeeder` | 10 incidencias coherentes, creadas a través del servicio de dominio, con su historial y sus plazos de SLA reales |
+| `CatalogSeeder` | Estados (`Abierta`, `En Revisión`, `Bloqueada`, `Resuelta`, `Anulada`) y categorías (`Seguridad`, `Redes`, `Accesos`, `Bug Informático`) |
+| `IncidentSeeder` | 11 incidencias coherentes, creadas a través del servicio de dominio, con su historial y sus plazos de SLA reales |
 | `CorruptDataSeeder` | 6 incidencias **inconsistentes a propósito** (ver [Caso práctico](#caso-práctico-diagnóstico-y-saneamiento)) |
 
 Para cargar solo los datos inconsistentes sobre una base ya migrada:
@@ -70,6 +70,18 @@ Tests (SQLite en memoria, no tocan MySQL):
 ```bash
 php artisan test
 ```
+
+## Rendimiento
+
+Con **OPcache desactivado**, PHP recompila todo Laravel en cada petición. En el entorno de desarrollo (Windows, `php artisan serve`) eso suponía unos 0,6 s por petición; con OPcache activo bajó a unos 0,1 s. En `php.ini`:
+
+```ini
+zend_extension=opcache
+opcache.enable=1
+opcache.enable_cli=1
+```
+
+`opcache.enable_cli=1` es necesario porque `php artisan serve` usa el servidor embebido de PHP, que corre como CLI. En producción conviene además `php artisan optimize` (caché de configuración, rutas y vistas).
 
 ## Modelo de datos
 
@@ -112,14 +124,20 @@ Ejemplo: una P1 creada un viernes a las 16:30 vence el lunes a las 11:30 (30 min
 
 Flujo de estados:
 
-```
-Abierta ──> En Revisión ──> Bloqueada ──> En Revisión (desbloqueo)
-                       └──> Resuelta  ──> Abierta     (reapertura, motivo obligatorio)
-```
+| Desde | Puede pasar a |
+|---|---|
+| `Abierta` | `En Revisión`, `Anulada` |
+| `En Revisión` | `Bloqueada`, `Resuelta`, `Anulada` |
+| `Bloqueada` | `En Revisión` (desbloqueo), `Anulada` |
+| `Resuelta` | `Abierta` (reapertura, motivo obligatorio) |
+| `Anulada` | — (estado final) |
+
+- **Estado inicial:** una incidencia sin responsable solo puede crearse `Abierta`; con responsable puede crearse `Abierta` o `En Revisión`. El formulario solo ofrece las opciones válidas y el servicio rechaza cualquier otra.
+- **Anulación:** cualquier incidencia no resuelta puede anularse. Exige confirmación y motivo, es definitiva y deja la incidencia fuera del SLA (ni cumple ni incumple).
 
 - **Transacciones:** `App\Services\IncidentService` es el único punto de escritura. Cada operación (crear, editar, cambiar estado, comentar) modifica la incidencia e inserta su log dentro del mismo `DB::transaction`, con bloqueo de fila (`lockForUpdate`) para evitar escrituras concurrentes sobre datos obsoletos.
 - **Reapertura:** `Resuelta → Abierta` genera un log con acción `reopened` y el motivo en `metadata`. Sin motivo, el servicio rechaza la operación.
-- **Confirmaciones:** pasar a `Bloqueada` o `Resuelta` (y reabrir) abre un diálogo de confirmación. La regla se valida también en servidor: la UI no puede saltársela.
+- **Confirmaciones:** pasar a `Bloqueada`, `Resuelta` o `Anulada` (y reabrir) abre un diálogo de confirmación. La regla se valida también en servidor: la UI no puede saltársela.
 - Las transiciones no permitidas se rechazan con un aviso y no dejan rastro en la base de datos.
 
 ## Interfaz
@@ -128,6 +146,23 @@ Abierta ──> En Revisión ──> Bloqueada ──> En Revisión (desbloqueo)
 - **Tablero** con tarjetas que resaltan las incidencias con SLA vencido (rojo, indicador animado) y las bloqueadas (candado).
 - **Cambio de estado:** arrastrar y soltar en escritorio; desplegable en la tarjeta en móvil y pantallas táctiles.
 - **Vista detallada** en panel lateral: edición de título y descripción, cambio de estado y pestañas de comentarios e historial.
+
+### Temas
+
+El selector **Tema** de la cabecera cambia la paleta al instante y recuerda la elección en el navegador (`localStorage`).
+
+| Tema | Carácter | Fondo | Superficie | Texto | Acento |
+|---|---|---|---|---|---|
+| Claro (por defecto) | Neutro frío | `#E9EEF5` | `#FFFFFF` | `#0F172A` | Índigo `#4F46E5` |
+| Océano | Claro azulado | `#E1EDF3` | `#FFFFFF` | `#0B2B3C` | Petróleo `#0E7490` |
+| Tierra | Claro cálido | `#EFE7DA` | `#FFFDF9` | `#2A211A` | Ámbar tostado `#B45309` |
+| Consola | Oscuro pizarra | `#070C16` | `#18233A` | `#F8FAFC` | Verde operativo `#22C55E` |
+| Alto contraste | Negro puro | `#000000` | `#000000` | `#FFFFFF` | Amarillo `#FFD600` |
+
+- Los componentes solo usan **colores semánticos** (`bg-surface`, `text-ink`, `bg-danger-soft`…). Cada tema da valor a las mismas variables CSS en `resources/css/themes.css`, y `resources/css/app.css` las expone a Tailwind.
+- Los significados no cambian entre temas: azul = abierta, ámbar = en revisión, rojo = bloqueada o vencida, verde = resuelta, gris = anulada.
+- Añadir un tema son dos pasos: un bloque `[data-theme='…']` en `themes.css` y una entrada en `config/themes.php`.
+- Los desplegables (`<select>`) siguen el tema también en su panel de opciones: se usa `appearance: base-select` donde el navegador lo admite y, donde no, las opciones heredan los colores del tema.
 
 Decisiones de arquitectura frontend:
 
@@ -239,7 +274,7 @@ Los logs reconstruidos se firman como `sistema:saneamiento` y llevan `metadata.i
 
 - **1B.** Sin `resolution_date` no hay evidencia de cuándo se resolvió ni de si realmente se resolvió. Crear el log sería fabricar un hecho.
 - **2B.** `Resuelta → Bloqueada` no es una transición del flujo. Puede estar mal el estado o puede estar mal el log; elegir uno automáticamente tiene un 50 % de probabilidad de destruir el dato correcto.
-- **Reaperturas implícitas** (último log `Resuelta`, estado `Abierta`): la regla de negocio exige un motivo explícito, que no se puede inventar.
+- **Reaperturas y anulaciones implícitas** (el estado actual es `Abierta` tras `Resuelta`, o `Anulada`, sin log que lo explique): la regla de negocio exige un motivo explícito, que no se puede inventar.
 - **3B.** No se sabe si la fecha es errónea o si el log pertenece a otra incidencia. Borrarlo o refecharlo destruiría la evidencia que un humano necesita para decidir.
 
 Marcar para revisión significa insertar un log `manual_review` con el problema y la razón por la que no se autocorrige. Queda visible en la pestaña **Historial** de la incidencia.
@@ -256,6 +291,8 @@ app/
 ├── Support/Sla/                            Calendario laboral y política de SLA
 └── ViewModels/                             Datos de presentación para las vistas
 config/sla.php                              Matriz y horario de SLA
+config/themes.php                           Catálogo de temas
+resources/css/themes.css                   Paletas de cada tema
 resources/views/components/ui/              Componentes Blade reutilizables
 resources/views/components/incident/        Tarjeta del tablero
 resources/views/livewire/                   Vistas de los componentes Livewire
@@ -263,7 +300,7 @@ resources/views/livewire/                   Vistas de los componentes Livewire
 
 ## Fuera de alcance
 
-Según la especificación: autenticación y roles, notificaciones, suites de tests extensas, Docker, despliegue e integraciones externas. Se incluyen 10 tests que cubren el calendario laboral y las reglas del flujo de estados.
+Según la especificación: autenticación y roles, notificaciones, suites de tests extensas, Docker, despliegue e integraciones externas. Se incluyen 15 tests que cubren el calendario laboral y las reglas del flujo de estados.
 
 Limitaciones conocidas:
 

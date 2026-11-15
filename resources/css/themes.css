@@ -1,0 +1,215 @@
+/*
+ | Temas de la aplicación. Cada tema da valor al mismo juego de variables:
+ |
+ |   Superficies  --canvas (fondo) · --surface (tarjetas) · --surface-muted · --lane (columnas)
+ |   Texto        --ink · --ink-muted · --ink-subtle
+ |   Líneas       --line · --line-strong
+ |   Acción       --primary · --primary-hover · --on-primary · --focus
+ |   Tonos        {neutral|info|success|warning|danger}-{soft|ink|line|solid} y --on-{tono}
+ |
+ | Añadir un tema = un bloque [data-theme='...'] aquí + una entrada en config/themes.php.
+ | Los pares texto/fondo cumplen contraste AA (4.5:1) en todos los temas.
+ */
+
+/* ── Tonos para temas claros ─────────────────────────────────────────────── */
+:root {
+    color-scheme: light;
+    --overlay: rgb(15 23 42 / 0.5);
+
+    --neutral-soft: #f1f5f9;
+    --neutral-ink: #334155;
+    --neutral-line: #cbd5e1;
+    --neutral-solid: #334155;
+    --on-neutral: #ffffff;
+
+    --info-soft: #f0f9ff;
+    --info-ink: #075985;
+    --info-line: #bae6fd;
+    --info-solid: #0369a1;
+    --on-info: #ffffff;
+
+    --success-soft: #ecfdf5;
+    --success-ink: #065f46;
+    --success-line: #a7f3d0;
+    --success-solid: #047857;
+    --on-success: #ffffff;
+
+    --warning-soft: #fffbeb;
+    --warning-ink: #78350f;
+    --warning-line: #fcd34d;
+    --warning-solid: #f59e0b;
+    --on-warning: #1c1917;
+
+    --danger-soft: #fef2f2;
+    --danger-ink: #991b1b;
+    --danger-line: #fecaca;
+    --danger-solid: #dc2626;
+    --on-danger: #ffffff;
+}
+
+/* ── 1. Claro: neutro frío con acento índigo ─────────────────────────────── */
+:root,
+[data-theme='light'] {
+    --canvas: #e9eef5;
+    --surface: #ffffff;
+    --surface-muted: #f3f6fa;
+    --lane: #d8e0ea;
+
+    --ink: #0f172a;
+    --ink-muted: #475569;
+    --ink-subtle: #8593a6;
+
+    --line: #d5dde8;
+    --line-strong: #b4c0d0;
+
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --on-primary: #ffffff;
+    --focus: #4f46e5;
+}
+
+/* ── 2. Océano: claro azulado con acento petróleo ────────────────────────── */
+[data-theme='ocean'] {
+    --canvas: #e1edf3;
+    --surface: #ffffff;
+    --surface-muted: #eef5f9;
+    --lane: #cbdee8;
+
+    --ink: #0b2b3c;
+    --ink-muted: #3f5f70;
+    --ink-subtle: #7994a3;
+
+    --line: #c8dbe4;
+    --line-strong: #a2bdca;
+
+    --primary: #0e7490;
+    --primary-hover: #155e75;
+    --on-primary: #ffffff;
+    --focus: #0e7490;
+}
+
+/* ── 3. Tierra: claro cálido con acento ámbar tostado ────────────────────── */
+[data-theme='earth'] {
+    --canvas: #efe7da;
+    --surface: #fffdf9;
+    --surface-muted: #f7f0e4;
+    --lane: #dfd3c0;
+
+    --ink: #2a211a;
+    --ink-muted: #6b5b4d;
+    --ink-subtle: #968574;
+
+    --line: #dccfba;
+    --line-strong: #c0af95;
+
+    --primary: #b45309;
+    --primary-hover: #92400e;
+    --on-primary: #ffffff;
+    --focus: #b45309;
+}
+
+/* ── 4. Consola: oscuro pizarra con verde operativo ──────────────────────── */
+[data-theme='console'] {
+    color-scheme: dark;
+    --overlay: rgb(0 0 0 / 0.65);
+
+    --canvas: #070c16;
+    --surface: #18233a;
+    --surface-muted: #212e49;
+    --lane: #0e1728;
+
+    --ink: #f8fafc;
+    --ink-muted: #cbd5e1;
+    --ink-subtle: #8494ab;
+
+    --line: #2c3b57;
+    --line-strong: #475875;
+
+    --primary: #22c55e;
+    --primary-hover: #4ade80;
+    --on-primary: #052e16;
+    --focus: #4ade80;
+
+    --neutral-soft: #1e293b;
+    --neutral-ink: #e2e8f0;
+    --neutral-line: #3b4a63;
+    --neutral-solid: #cbd5e1;
+    --on-neutral: #0f172a;
+
+    --info-soft: #0c2a3f;
+    --info-ink: #7dd3fc;
+    --info-line: #0e4b6e;
+    --info-solid: #38bdf8;
+    --on-info: #04111c;
+
+    --success-soft: #0a2e22;
+    --success-ink: #6ee7b7;
+    --success-line: #0f5a40;
+    --success-solid: #34d399;
+    --on-success: #03140e;
+
+    --warning-soft: #33250a;
+    --warning-ink: #fcd34d;
+    --warning-line: #6b4e0e;
+    --warning-solid: #fbbf24;
+    --on-warning: #1a1204;
+
+    --danger-soft: #3a1216;
+    --danger-ink: #fca5a5;
+    --danger-line: #7f1d1d;
+    --danger-solid: #dc2626;
+    --on-danger: #ffffff;
+}
+
+/* ── 5. Alto contraste: negro puro, texto blanco y acento amarillo ───────── */
+[data-theme='contrast'] {
+    color-scheme: dark;
+    --overlay: rgb(0 0 0 / 0.8);
+
+    --canvas: #000000;
+    --surface: #000000;
+    --surface-muted: #262626;
+    --lane: #1f1f1f;
+
+    --ink: #ffffff;
+    --ink-muted: #e5e5e5;
+    --ink-subtle: #bdbdbd;
+
+    --line: #8c8c8c;
+    --line-strong: #ffffff;
+
+    --primary: #ffd600;
+    --primary-hover: #ffe54d;
+    --on-primary: #000000;
+    --focus: #00e5ff;
+
+    --neutral-soft: #000000;
+    --neutral-ink: #ffffff;
+    --neutral-line: #ffffff;
+    --neutral-solid: #ffffff;
+    --on-neutral: #000000;
+
+    --info-soft: #000000;
+    --info-ink: #7fdbff;
+    --info-line: #7fdbff;
+    --info-solid: #7fdbff;
+    --on-info: #000000;
+
+    --success-soft: #000000;
+    --success-ink: #5cff8f;
+    --success-line: #5cff8f;
+    --success-solid: #5cff8f;
+    --on-success: #000000;
+
+    --warning-soft: #000000;
+    --warning-ink: #ffd600;
+    --warning-line: #ffd600;
+    --warning-solid: #ffd600;
+    --on-warning: #000000;
+
+    --danger-soft: #000000;
+    --danger-ink: #ff8080;
+    --danger-line: #ff8080;
+    --danger-solid: #ff4d4d;
+    --on-danger: #000000;
+}

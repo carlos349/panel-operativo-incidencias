@@ -101,6 +101,72 @@ class IncidentWorkflowTest extends TestCase
     }
 
     #[Test]
+    public function an_incident_without_assignee_can_only_be_created_open(): void
+    {
+        $this->expectException(IncidentRuleViolation::class);
+
+        $this->createIncident(status: IncidentStatus::InReview);
+    }
+
+    #[Test]
+    public function an_incident_with_assignee_can_be_created_in_review_but_not_beyond(): void
+    {
+        $incident = $this->createIncident(status: IncidentStatus::InReview, assignee: 'Ana Beltrán');
+
+        $this->assertSame(IncidentStatus::InReview, $incident->status->type());
+        $this->assertNotNull($incident->first_responded_at);
+
+        $this->expectException(IncidentRuleViolation::class);
+
+        $this->createIncident(status: IncidentStatus::Resolved, assignee: 'Ana Beltrán');
+    }
+
+    #[Test]
+    public function any_unresolved_incident_can_be_cancelled_with_a_reason(): void
+    {
+        foreach ([[], [IncidentStatus::InReview], [IncidentStatus::InReview, IncidentStatus::Blocked]] as $path) {
+            $incident = $this->createIncident();
+
+            foreach ($path as $step) {
+                $this->move($incident, $step);
+            }
+
+            $this->move($incident, IncidentStatus::Cancelled, 'Duplicada');
+
+            $this->assertSame(IncidentStatus::Cancelled, $incident->fresh()->status->type());
+            $this->assertDatabaseHas('incident_logs', [
+                'incident_id' => $incident->id,
+                'new_value' => IncidentStatus::Cancelled->value,
+            ]);
+        }
+    }
+
+    #[Test]
+    public function cancelling_requires_a_reason(): void
+    {
+        $incident = $this->createIncident();
+
+        $this->expectException(IncidentRuleViolation::class);
+
+        $this->move($incident, IncidentStatus::Cancelled);
+    }
+
+    #[Test]
+    public function a_resolved_incident_cannot_be_cancelled_and_cancelled_is_final(): void
+    {
+        $resolved = $this->createIncident();
+        $this->move($resolved, IncidentStatus::InReview);
+        $this->move($resolved, IncidentStatus::Resolved);
+
+        $this->assertFalse(IncidentStatus::Resolved->canTransitionTo(IncidentStatus::Cancelled));
+        $this->assertSame([], IncidentStatus::Cancelled->allowedTransitions());
+
+        $this->expectException(IncidentRuleViolation::class);
+
+        $this->move($resolved, IncidentStatus::Cancelled, 'No procede');
+    }
+
+    #[Test]
     public function the_board_renders(): void
     {
         $this->createIncident();
@@ -108,14 +174,18 @@ class IncidentWorkflowTest extends TestCase
         $this->get('/')->assertOk()->assertSee('Incidencia de prueba');
     }
 
-    private function createIncident(string $priority = 'P3'): Incident
-    {
+    private function createIncident(
+        string $priority = 'P3',
+        IncidentStatus $status = IncidentStatus::Open,
+        ?string $assignee = null,
+    ): Incident {
         return $this->service->create([
             'title' => 'Incidencia de prueba',
             'description' => 'Descripción suficientemente larga.',
-            'status_id' => Status::findByType(IncidentStatus::Open)->id,
+            'status_id' => Status::findByType($status)->id,
             'priority' => $priority,
-        ], 'Tester');
+            'assigned_to' => $assignee,
+        ], 'Tester')->load('status');
     }
 
     private function move(Incident $incident, IncidentStatus $to, ?string $reason = null): void

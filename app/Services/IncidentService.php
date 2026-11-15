@@ -30,6 +30,11 @@ class IncidentService
             $status = Status::query()->findOrFail($data['status_id']);
             $priority = Priority::from($data['priority']);
             $now = now()->toImmutable();
+            $hasAssignee = filled($data['assigned_to'] ?? null);
+
+            if (! in_array($status->type(), IncidentStatus::allowedInitial($hasAssignee), true)) {
+                throw IncidentRuleViolation::invalidInitialStatus($status->name, $hasAssignee);
+            }
 
             $incident = Incident::query()->create([
                 'title' => $data['title'],
@@ -41,9 +46,8 @@ class IncidentService
                 'assigned_to' => $data['assigned_to'] ?? null,
                 'first_response_due_at' => $this->sla->firstResponseDueAt($priority, $now),
                 'resolution_due_at' => $this->sla->resolutionDueAt($priority, $now),
-                // Si nace fuera de «Abierta», alguien ya la está atendiendo.
+                // Si nace «En Revisión», alguien ya la está atendiendo.
                 'first_responded_at' => $status->type() === IncidentStatus::Open ? null : $now,
-                'resolution_date' => $status->type() === IncidentStatus::Resolved ? $now : null,
             ]);
 
             $this->log($incident, LogAction::Created, null, $status->name, $actor, [
@@ -103,8 +107,8 @@ class IncidentService
 
             $isReopen = $to->isReopenFrom($from);
 
-            if ($isReopen && $reason === null) {
-                throw IncidentRuleViolation::reopenReasonRequired();
+            if ($to->requiresReasonFrom($from) && $reason === null) {
+                throw IncidentRuleViolation::reasonRequired($to->value);
             }
 
             $now = now()->toImmutable();

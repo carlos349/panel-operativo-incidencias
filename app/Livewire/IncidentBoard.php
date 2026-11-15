@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enums\IncidentStatus;
 use App\Enums\Priority;
 use App\Exceptions\IncidentRuleViolation;
 use App\Models\Incident;
@@ -110,11 +111,11 @@ class IncidentBoard extends Component
             return;
         }
 
-        $isReopen = $target->type()->isReopenFrom($incident->status->type());
+        $reasonRequired = $target->type()->requiresReasonFrom($incident->status->type());
 
         $this->validate(
-            ['pendingReason' => [$isReopen ? 'required' : 'nullable', 'string', 'max:500']],
-            ['pendingReason.required' => 'Indica el motivo de la reapertura.'],
+            ['pendingReason' => [$reasonRequired ? 'required' : 'nullable', 'string', 'max:500']],
+            ['pendingReason.required' => 'Indica el motivo: quedará registrado en el historial.'],
         );
 
         $this->applyStatusChange($service, $incident, $target, $this->pendingReason);
@@ -208,18 +209,23 @@ class IncidentBoard extends Component
             return null;
         }
 
-        $isReopen = $target->type()->isReopenFrom($incident->status->type());
+        $from = $incident->status->type();
+        $to = $target->type();
+        $isReopen = $to->isReopenFrom($from);
 
         return [
             'title' => $isReopen ? 'Reabrir incidencia' : "Pasar a «{$target->name}»",
             'incidentTitle' => $incident->title,
             'from' => $incident->status->name,
             'to' => $target->name,
-            'tone' => $target->type()->tone(),
+            'tone' => $to->tone(),
             'isReopen' => $isReopen,
-            'message' => $isReopen
-                ? 'La reapertura quedará registrada en el historial y reinicia el plazo de resolución del SLA.'
-                : 'Esta acción quedará registrada en el historial de la incidencia.',
+            'reasonRequired' => $to->requiresReasonFrom($from),
+            'message' => match (true) {
+                $isReopen => 'La reapertura quedará registrada en el historial y reinicia el plazo de resolución del SLA.',
+                $to === IncidentStatus::Cancelled => 'Anular es definitivo: la incidencia no podrá volver a cambiar de estado.',
+                default => 'Esta acción quedará registrada en el historial de la incidencia.',
+            },
         ];
     }
 

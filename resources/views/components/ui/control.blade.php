@@ -3,10 +3,13 @@
 
 @php
     $classes = $attributes->class([
-        'block w-full rounded-lg border-0 bg-white px-3 text-base text-slate-900 shadow-sm ring-1 ring-inset sm:text-sm',
-        'placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-indigo-600',
+        'w-full rounded-lg border-0 bg-surface px-3 text-base text-ink shadow-sm ring-1 ring-inset sm:text-sm',
+        $as === 'select' ? 'flex items-center justify-between gap-2' : 'block',
+        'placeholder:text-ink-subtle focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-focus',
         $as === 'textarea' ? 'py-2.5' : 'min-h-11',
-        $invalid ? 'ring-red-400' : 'ring-slate-300',
+        // El panel de opciones del select se estiliza en resources/css/app.css (.ui-select).
+        'ui-select cursor-pointer' => $as === 'select',
+        $invalid ? 'ring-danger-solid' : 'ring-line-strong',
     ])->merge($invalid ? ['aria-invalid' => 'true'] : []);
 @endphp
 

@@ -156,6 +156,16 @@ class IncidentSeeder extends Seeder
                 ],
             ],
             [
+                'title' => 'Solicitud de segundo monitor para el puesto 12',
+                'description' => 'Petición de material duplicada: ya se tramitó por el circuito de compras.',
+                'priority' => 'P4', 'category' => 'Accesos',
+                'requester' => 'Pablo Serrano', 'assignee' => null,
+                'created_minutes_ago' => 3 * $day,
+                'steps' => [
+                    ['minutes_ago' => 2 * $day, 'to' => IncidentStatus::Cancelled, 'by' => 'Ana Beltrán', 'reason' => 'Duplicada: la petición ya está gestionada por Compras.'],
+                ],
+            ],
+            [
                 'title' => 'Cuenta de servicio bloqueada en el ERP',
                 'description' => 'La integración nocturna falla porque la cuenta técnica quedó bloqueada por intentos fallidos.',
                 'priority' => 'P2', 'category' => 'Accesos',

@@ -141,9 +141,9 @@ class IncidentIntegrityService
                         'El salto no es una transición válida del flujo: no se puede saber si el dato erróneo es el estado o el log.');
                 }
 
-                if ($current->isReopenFrom($logged)) {
+                if ($current->requiresReasonFrom($logged)) {
                     return $this->manual(self::STATUS_LOG_MISMATCH, $row->id, $problem,
-                        'Sería una reapertura, que exige un motivo explícito que no se puede inventar.');
+                        'Sería una reapertura o una anulación, que exigen un motivo explícito que no se puede inventar.');
                 }
 
                 // Un único paso válido del flujo: lo más probable es un cambio que no dejó log.

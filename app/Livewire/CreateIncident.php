@@ -9,6 +9,7 @@ use App\Models\Status;
 use App\Services\IncidentService;
 use App\Support\CurrentOperator;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -70,7 +71,8 @@ class CreateIncident extends Component
         return [
             'title' => ['required', 'string', 'min:5', 'max:150'],
             'description' => ['required', 'string', 'min:10', 'max:5000'],
-            'statusId' => ['required', Rule::exists('statuses', 'id')],
+            // Sin responsable solo «Abierta»; con responsable, también «En Revisión».
+            'statusId' => ['required', Rule::in($this->initialStatuses()->pluck('id')->all())],
             'priority' => ['required', Rule::enum(Priority::class)],
             'categoryId' => ['nullable', Rule::exists('categories', 'id')],
             'requesterName' => ['nullable', 'string', 'max:100'],
@@ -86,6 +88,7 @@ class CreateIncident extends Component
             'min' => 'El campo :attribute debe tener al menos :min caracteres.',
             'max' => 'El campo :attribute no puede superar los :max caracteres.',
             'exists' => 'El valor elegido en :attribute no es válido.',
+            'statusId.in' => 'Sin responsable la incidencia solo puede crearse «Abierta»; con responsable, «Abierta» o «En Revisión».',
             'enum' => 'El valor elegido en :attribute no es válido.',
         ];
     }
@@ -107,10 +110,34 @@ class CreateIncident extends Component
     public function render(): View
     {
         return view('livewire.create-incident', [
-            'statuses' => $this->open ? Status::query()->orderBy('id')->get(['id', 'name']) : collect(),
+            'statuses' => $this->open ? $this->initialStatuses() : collect(),
+            'canStartInReview' => filled(trim($this->assignedTo)),
             'categories' => $this->open ? Category::query()->orderBy('name')->get(['id', 'name']) : collect(),
             'priorities' => Priority::cases(),
         ]);
+    }
+
+    /** Si se quita el responsable, «En Revisión» deja de ser válido: se vuelve a «Abierta». */
+    public function updatedAssignedTo(): void
+    {
+        if (! $this->initialStatuses()->contains('id', (int) $this->statusId)) {
+            $this->statusId = (string) Status::findByType(IncidentStatus::Open)->id;
+        }
+    }
+
+    /**
+     * Estados con los que puede crearse la incidencia según tenga o no responsable.
+     *
+     * @return Collection<int, Status>
+     */
+    private function initialStatuses(): Collection
+    {
+        $allowed = array_map(
+            fn (IncidentStatus $status) => $status->value,
+            IncidentStatus::allowedInitial(filled(trim($this->assignedTo))),
+        );
+
+        return Status::query()->whereIn('name', $allowed)->orderBy('id')->get(['id', 'name']);
     }
 
     private function resetForm(): void

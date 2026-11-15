@@ -43,6 +43,23 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
+    /** Selector de tema: aplica data-theme en <html> y recuerda la elección. */
+    window.Alpine.data('themeSwitcher', () => ({
+        theme: document.documentElement.dataset.theme,
+
+        init() {
+            this.$watch('theme', (theme) => {
+                document.documentElement.dataset.theme = theme;
+
+                try {
+                    localStorage.setItem('theme', theme);
+                } catch {
+                    // Sin almacenamiento (modo privado): el tema dura lo que la página.
+                }
+            });
+        },
+    }));
+
     window.Alpine.data('toasts', () => ({
         items: [],
 
