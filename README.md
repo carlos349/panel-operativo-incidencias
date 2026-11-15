@@ -85,11 +85,9 @@ opcache.enable_cli=1
 
 ## Modelo de datos
 
-```
-statuses ──┐
-           ├──< incidents ──< incident_logs
-categories ┘        └──────< incident_comments
-```
+![Diagrama entidad-relación: statuses y categories tienen muchas incidents; cada incident tiene muchos incident_logs e incident_comments](docs/modelo-de-datos.svg)
+
+El diagrama es editable: abre [`docs/modelo-de-datos.excalidraw`](docs/modelo-de-datos.excalidraw) en [excalidraw.com](https://excalidraw.com) (menú → *Abrir*).
 
 Las tablas siguen la especificación. Decisiones añadidas:
 
